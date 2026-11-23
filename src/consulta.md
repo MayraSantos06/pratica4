@@ -1,391 +1,343 @@
-# Guia de consulta --- Testes Unitários em Java (JUnit 5)
+# CONSULTA RÁPIDA --- TESTES UNITÁRIOS JAVA + JUNIT 5
 
-> Material de apoio para prova prática com consulta. Use os modelos como
-> ponto de partida e adapte nomes, construtores, métodos, regras e
-> exceções ao enunciado.
+> **Use este arquivo durante a prova.** Não leia tudo de uma vez.
+> Encontre o que o enunciado pede na tabela abaixo, vá até a seção
+> indicada e adapte o exemplo.
 
-## 1. O que é um teste unitário?
+## 1. Ache rápido o que você precisa
 
-Um teste unitário executa uma parte pequena do sistema (normalmente um
-método) e verifica se o resultado ou comportamento corresponde ao
-esperado.
+  -----------------------------------------------------------------------
+  Se o enunciado pedir...             Vá para...
+  ----------------------------------- -----------------------------------
+  Conferir um cálculo ou retorno      **2. Testar resultado**
 
-**Importante:** o teste não faz o cálculo no lugar da classe da
-aplicação. Ele chama o método da aplicação e confere o resultado.
+  Conferir se uma exceção acontece    **3. Testar exceção**
 
-Exemplo: a classe calcula o total de uma compra; o teste chama
-`calcularTotal()` e compara o retorno com o valor esperado.
+  Verificar alteração de              **4. Testar estado**
+  status/atributo                     
 
-## 2. Como transformar o enunciado em testes
+  Preparar objeto para cada teste     **5. Preparação**
 
-1.  Liste as classes de domínio e identifique quais têm comportamento
-    próprio.
-2.  Identifique os atributos, construtores e métodos de cada classe.
-3.  Transforme cada regra de negócio em um cenário de teste.
-4.  Para cada regra, pense em:
-    -   cenário válido: o que deve acontecer?
-    -   cenário inválido: qual erro ou exceção deve acontecer?
-    -   mudança de estado: qual status/valor deve ficar depois da
-        operação?
-5.  Faça manualmente as contas de descontos, taxas, frete e valores
-    finais.
-6.  Crie as classes de teste exigidas pelo professor e teste todos os
-    tipos concretos.
+  Testar regra de limite (maior que,  **6. Testar limites**
+  menor que)                          
 
-## 3. Estrutura básica de uma classe de teste
+  Testar classe filha, abstrata,      **7. Conceitos do projeto**
+  interface ou enum                   
+
+  Criar uma classe de teste do zero   **8. Modelo pronto**
+
+  Compilar ou executar no PowerShell  **9. Comandos**
+
+  Resolver falha de teste             **10. Erros comuns**
+  -----------------------------------------------------------------------
+
+## 2. Testar resultado de um método
+
+**Quando usar:** o método retorna um valor, como preço final, média,
+total, frete ou quantidade.
 
 ``` java
-import static org.junit.jupiter.api.Assertions.*;
+@Test
+void deveCalcularTotal() {
+    // Preparar
+    Produto produto = new Produto(100.0);
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+    // Executar
+    double resultado = produto.calcularTotal();
 
-public class ProdutoTest {
-
-    private Produto produto;
-
-    @BeforeEach
-    public void configurar() {
-        // Cria um objeto novo antes de cada teste.
-        produto = new Produto("Caderno", 20.0);
-    }
-
-    @AfterEach
-    public void finalizar() {
-        // Executa depois de cada teste.
-        System.out.println("Teste finalizado!");
-    }
-
-    @Test
-    public void testarPreco() {
-        assertEquals(20.0, produto.getPreco(), 0.01);
-    }
+    // Conferir: esperado, obtido, tolerância
+    assertEquals(110.0, resultado, 0.001);
 }
 ```
 
-Troque `Produto`, os argumentos do construtor, getters e métodos pelos
-nomes reais do projeto.
+`assertEquals(esperado, obtido)` compara o resultado esperado com o que
+o método retornou.
 
-## 4. Anotações do JUnit 5
+-   Para `int`, `String`, enum etc.: `assertEquals(esperado, obtido)`.
+-   Para `double` ou `float`: use também o delta, por exemplo `0.001`.
+-   O valor esperado deve vir da regra do enunciado. Não copie o cálculo
+    do próprio método para montar a expectativa.
 
-  -----------------------------------------------------------------------
-  Anotação                            Para que serve
-  ----------------------------------- -----------------------------------
-  `@Test`                             Marca um método como teste.
+**Adapte:** troque `Produto`, os argumentos do construtor,
+`calcularTotal()` e `110.0`.
 
-  `@BeforeEach`                       Executa antes de cada teste. Use
-                                      para criar/preparar objetos e
-                                      dados.
+## 3. Testar se uma exceção é lançada
 
-  `@AfterEach`                        Executa depois de cada teste. Use
-                                      para informar a finalização ou
-                                      limpar recursos.
-
-  `@BeforeAll`                        Executa uma vez antes de todos os
-                                      testes da classe. Normalmente o
-                                      método é `static`.
-
-  `@AfterAll`                         Executa uma vez depois de todos os
-                                      testes da classe. Normalmente o
-                                      método é `static`.
-  -----------------------------------------------------------------------
-
-**Atenção:** para instanciar e inicializar objetos antes de cada teste,
-use `@BeforeEach`, não `@AfterEach`.
-
-## 5. Asserções mais usadas
-
-  ---------------------------------------------------------------------------------------------------------------------------------------
-  Método                                   O que verifica          Exemplo
-  ---------------------------------------- ----------------------- ----------------------------------------------------------------------
-  `assertEquals(esperado, atual)`          Se dois valores são     `assertEquals(10, obj.calcular());`
-                                           iguais.                 
-
-  `assertEquals(esperado, atual, delta)`   Igualdade aproximada    `assertEquals(10.5, obj.total(), 0.01);`
-                                           para `double`.          
-
-  `assertTrue(condicao)`                   Se a condição é         `assertTrue(obj.estaAtivo());`
-                                           verdadeira.             
-
-  `assertFalse(condicao)`                  Se a condição é falsa.  `assertFalse(obj.temEstoque());`
-
-  `assertNull(valor)`                      Se o valor é `null`.    `assertNull(obj.getResponsavel());`
-
-  `assertNotNull(valor)`                   Se o valor não é        `assertNotNull(obj.getId());`
-                                           `null`.                 
-
-  `assertThrows(Tipo.class, lambda)`       Se o trecho lança a     `assertThrows(IllegalArgumentException.class, () -> obj.setId(-1));`
-                                           exceção esperada.       
-  ---------------------------------------------------------------------------------------------------------------------------------------
-
-### Entendendo `assertEquals`
+**Quando usar:** o enunciado diz "deve lançar", "não permitir",
+"rejeitar", "valor inválido" ou "não aceitar".
 
 ``` java
-assertEquals(105.0, pedido.calcularValorFinal(), 0.01);
-```
-
--   `105.0`: valor esperado, calculado com base na regra do enunciado.
--   `pedido.calcularValorFinal()`: valor real retornado pelo programa.
--   `0.01`: tolerância para pequenas diferenças decimais. Se a diferença
-    for de até `0.01`, a comparação passa.
-
-Para enum, texto e inteiros, normalmente não é necessário informar
-tolerância:
-
-``` java
-assertEquals(StatusPedido.PROCESSANDO, pedido.getStatus());
-```
-
-### Entendendo `assertThrows`
-
-``` java
-assertThrows(ValorInvalidoException.class, () -> {
-    new Pedido("A-10", -50);
-});
+@Test
+void naoDeveAceitarValorNegativo() {
+    assertThrows(ValorInvalidoException.class, () -> {
+        new Produto(-10.0);
+    });
+}
 ```
 
 -   `ValorInvalidoException.class`: tipo de exceção esperado.
--   `() -> { ... }`: expressão lambda; contém o trecho que o JUnit deve
-    executar.
--   O teste passa se a exceção esperada acontecer. Falha se nenhuma
-    exceção acontecer ou se for lançada outra exceção.
+-   `() -> { ... }`: ação que o JUnit executa.
+-   Coloque dentro das chaves exatamente a operação que deve lançar a
+    exceção.
 
-## 6. Modelos para testar regras de negócio
+Para exceção padrão do Java, use o tipo correto:
 
-### A) Testar cálculo
+``` java
+assertThrows(NullPointerException.class, () -> {
+    produto.definirCategoria(null);
+});
+```
+
+**Atenção:** use o nome da exceção que o código realmente lança.
+`assertThrows` verifica a exceção; `throws` na assinatura apenas declara
+que o método pode propagá-la.
+
+## 4. Testar mudança de estado
+
+**Quando usar:** o método altera status, situação, disponibilidade,
+saldo ou outro atributo.
 
 ``` java
 @Test
-public void testarCalculoTotal() {
-    // Exemplo: preço 100 + taxa 5 = 105.
-    assertEquals(105.0, pedido.calcularTotal(), 0.01);
+void deveAlterarStatus() {
+    Pedido pedido = new Pedido(/* argumentos */);
+
+    pedido.processarPedido();
+
+    assertEquals(StatusPedido.PROCESSANDO, pedido.getStatus());
 }
 ```
 
-Faça a conta manualmente. Se houver desconto, taxa ou frete, confira
-cada parcela e depois o total.
-
-### B) Testar exceção personalizada
+**Regra que proíbe uma alteração:**
 
 ``` java
 @Test
-public void testarValorNegativo() {
-    assertThrows(ValorInvalidoException.class, () -> {
-        new Produto("Caneta", -2.0);
-    });
-}
-```
-
-Use a exceção que o construtor ou método realmente lança. Confira o nome
-exato e se ela é checked (pode exigir `throws` ou `try/catch`).
-
-### C) Testar exceção nativa do Java
-
-``` java
-@Test
-public void testarParametroNulo() {
-    assertThrows(NullPointerException.class, () -> {
-        objeto.alterarStatus(null);
-    });
-}
-```
-
-Só escreva esse teste se o código realmente rejeitar `null` e lançar
-essa exceção. Não invente uma regra: confira a implementação.
-
-### D) Testar mudança de estado
-
-``` java
-@Test
-public void testarProcessamento() throws PedidoInvalidoException {
-    pedido.processar();
-    assertEquals(Status.PROCESSANDO, pedido.getStatus());
-}
-```
-
-Chame a operação e depois confira o estado pelo getter.
-
-### E) Testar uma alteração proibida
-
-``` java
-@Test
-public void testarAlteracaoBloqueada() throws PedidoInvalidoException {
-    pedido.alterarStatus(Status.ENTREGUE);
+void naoDeveAlterarPedidoEntregue() {
+    pedido.alterarStatus(StatusPedido.ENTREGUE);
 
     assertThrows(PedidoInvalidoException.class, () -> {
-        pedido.alterarStatus(Status.CANCELADO);
+        pedido.alterarStatus(StatusPedido.PROCESSANDO);
     });
+
+    // Confere que o status não mudou
+    assertEquals(StatusPedido.ENTREGUE, pedido.getStatus());
 }
 ```
 
-Primeiro prepare o objeto na situação proibida (por exemplo, status
-`ENTREGUE`); depois tente a alteração que deve falhar.
+Adapte os métodos, status e exceção aos nomes do seu projeto.
 
-## 7. Como testar herança, classe abstrata e interface
+## 5. Preparar objetos antes de cada teste
 
--   **Classe abstrata:** não pode ser instanciada diretamente. Crie um
-    objeto de uma classe concreta filha e, se útil, armazene-o numa
-    variável do tipo abstrato.
-
-    ``` java
-    Pedido pedido = new PedidoRoupa(...);
-    ```
-
--   **Herança:** teste métodos herdados usando uma subclasse concreta.
-    Teste também comportamentos específicos de cada subclasse.
-
--   **Polimorfismo:** teste cada tipo concreto quando cada um implementa
-    a regra de forma diferente.
-
--   **Interface:** normalmente não se cria um teste separado para a
-    interface. Testam-se as classes que implementam seus métodos.
-
--   **Enum:** teste os comportamentos que dependem dos valores do enum,
-    como transições de status.
-
-## 8. Modelo completo adaptável
+Use `@BeforeEach` quando vários testes precisarem de um objeto
+inicializado.
 
 ``` java
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
-public class NomeDaClasseTest {
-
-    private NomeDaClasse objeto;
+class ProdutoTest {
+    private Produto produto;
 
     @BeforeEach
-    public void configurar() throws Exception {
-        // Crie um objeto válido para cada teste.
-        objeto = new NomeDaClasse(/* argumentos */);
+    void setUp() {
+        produto = new Produto(100.0);
     }
 
     @AfterEach
-    public void finalizar() {
-        System.out.println("Teste finalizado!");
+    void tearDown() {
+        System.out.println("Teste finalizado");
+    }
+}
+```
+
+  Anotação        Quando executa
+  --------------- ----------------------
+  `@Test`         identifica um teste
+  `@BeforeEach`   antes de cada teste
+  `@AfterEach`    depois de cada teste
+
+**Por que objeto novo?** Um teste pode modificar o objeto. Preparar
+outro antes do próximo evita que um teste dependa do resultado de outro.
+
+Se o teste só usa um objeto uma vez, pode criá-lo diretamente dentro do
+próprio método de teste.
+
+## 6. Testar limites de uma regra
+
+**Quando usar:** o enunciado usa expressões como "maior que 100", "a
+partir de 18", "menor ou igual a 50".
+
+Se a regra for **maior que 100** (`> 100`), teste:
+
+    Entrada Resultado esperado
+  --------- ---------------------
+      99,99 condição não atende
+     100,00 condição não atende
+     100,01 condição atende
+
+Tradução das palavras:
+
+  Enunciado          Operador
+  ------------------ ----------
+  maior que          `>`
+  maior ou igual a   `>=`
+  menor que          `<`
+  menor ou igual a   `<=`
+  igual a            `==`
+  diferente de       `!=`
+
+Não confunda "maior que 100" com "maior ou igual a 100": no segundo
+caso, 100 também atende.
+
+## 7. Conceitos do projeto: o que muda nos testes?
+
+-   **Herança:** teste as regras comuns na classe base e as regras
+    próprias em cada classe filha.
+-   **Classe abstrata:** não pode ser instanciada diretamente. Use uma
+    classe concreta que herde dela.
+-   **Interface:** teste o comportamento usando uma classe concreta que
+    implementa a interface.
+-   **Enum:** compare com o valor do enum, por exemplo
+    `assertEquals(Status.ATIVO, objeto.getStatus())`.
+-   **Exceção personalizada:** use o nome da classe de exceção definida
+    no projeto.
+
+Exemplo de classe abstrata `Pedido`:
+
+``` java
+Pedido pedido = new PedidoEletronico(/* argumentos */);
+```
+
+Não tente fazer `new Pedido(...)` se `Pedido` for abstrata.
+
+## 8. Modelo pronto: classe de teste
+
+Copie e adapte este esqueleto. Apague os métodos de teste que não
+fizerem sentido para o enunciado.
+
+``` java
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class MinhaClasseTest {
+    private MinhaClasse objeto;
+
+    @BeforeEach
+    void setUp() {
+        objeto = new MinhaClasse(/* dados válidos */);
+    }
+
+    @AfterEach
+    void tearDown() {
+        System.out.println("Teste finalizado");
     }
 
     @Test
-    public void testarResultado() {
-        assertEquals(/* esperado */, objeto.metodo(), 0.01);
+    void deveRetornarResultadoEsperado() {
+        var resultado = objeto.metodo();
+
+        assertEquals(/* esperado */, resultado);
     }
 
     @Test
-    public void testarRegraDeEstado() throws Exception {
-        objeto.executarAcao();
-        assertEquals(/* estado esperado */, objeto.getEstado());
-    }
-
-    @Test
-    public void testarExcecao() {
-        assertThrows(ExcecaoEsperada.class, () -> {
-            objeto.operacaoInvalida();
+    void deveLancarExcecaoParaDadoInvalido() {
+        assertThrows(MinhaExcecao.class, () -> {
+            objeto.metodo(/* dado inválido */);
         });
     }
 }
 ```
 
-Este é um esqueleto. Substitua os nomes e remova/adapte os testes que
-não fizerem sentido para o enunciado.
+**Antes de executar:** substitua todos os nomes de exemplo pelos nomes
+que existem no código. Se o retorno for `double`, acrescente o delta no
+`assertEquals`.
 
-## 9. Passo a passo durante a prova
+## 9. Comandos para este projeto (PowerShell, sem Maven)
 
-1.  Leia o enunciado inteiro.
-2.  Destaque substantivos (possíveis classes), características
-    (atributos) e ações (métodos).
-3.  Identifique regras válidas e inválidas.
-4.  Confira a implementação das classes: nomes, construtores, getters e
-    exceções.
-5.  Crie a classe de teste com imports, atributo e `@BeforeEach`.
-6.  Escreva um teste para cada comportamento exigido: cálculo, estado,
-    exceção e restrições.
-7.  Compile primeiro. Corrija erros de digitação, imports e classpath
-    antes de executar o JUnit.
-8.  Execute os testes e leia a primeira falha com atenção: compare
-    esperado e atual e confira a regra.
-9.  Execute todos os testes juntos no final.
+Estes comandos consideram a estrutura usada no projeto de estudo:
 
-## 10. Erros comuns e como resolver
+-   produção: `src/main/java`
+-   testes: `src/test/java`
+-   JUnit: `lib/junit-platform-console-standalone-1.11.4.jar`
+-   saída: `out`
 
-  ------------------------------------------------------------------------------------
-  Erro                                             O que conferir
-  ------------------------------------------------ -----------------------------------
-  `cannot find symbol`                             Nome da classe/método, maiúsculas,
-                                                   digitação, imports e se a classe
-                                                   foi compilada.
-
-  `package org.junit.jupiter.api does not exist`   JAR do JUnit não está no classpath
-                                                   ou não foi adicionado corretamente.
-
-  `ClassNotFoundException` ao executar             A compilação falhou ou a classe não
-                                                   está no diretório de saída. Compile
-                                                   antes de executar.
-
-  `Expected ... but was ...`                       O resultado real é diferente do
-                                                   esperado. Confira a regra e a
-                                                   conta; não altere o esperado só
-                                                   para passar.
-
-  `Expected exception ...`                         A exceção não aconteceu. Confira se
-                                                   o cenário realmente deveria
-                                                   lançá-la.
-
-  `Unexpected exception`                           O código lançou outra exceção. Leia
-                                                   a mensagem e veja onde ocorreu.
-  ------------------------------------------------------------------------------------
-
-## 11. Comandos PowerShell --- projeto sem Maven
-
-Os comandos abaixo seguem o projeto de estudo, com pasta
-`src/main/java`, `src/test/java`, pasta `out` e JAR em `lib`.
-
-Compile as classes principais:
+**1. Compilar as classes principais:**
 
 ``` powershell
-$fontes = Get-ChildItem .\src\main\java -Filter *.java
-javac -d out $fontes.FullName
+$arquivos = Get-ChildItem .\src\main\java -Filter *.java
+javac -cp "lib\junit-platform-console-standalone-1.11.4.jar" -d out $arquivos.FullName
 ```
 
-Compile todas as classes de teste:
+**2. Compilar os testes:**
 
 ``` powershell
 $testes = Get-ChildItem .\src\test\java -Filter *.java
 javac -cp "out;lib\junit-platform-console-standalone-1.11.4.jar" -d out $testes.FullName
 ```
 
-Execute todos os testes:
+**3. Executar todos os testes:**
 
 ``` powershell
 java -jar lib\junit-platform-console-standalone-1.11.4.jar execute --class-path out --scan-class-path
 ```
 
-Se a prova usar Maven ou outra IDE, siga a configuração indicada pelo
-professor. O classpath acima é específico do projeto sem Maven e dos
-caminhos usados no projeto de estudo.
+Se a prova tiver outra estrutura de pastas, outro nome de JAR ou usar
+Maven, os comandos precisam ser ajustados. Não use estes caminhos sem
+conferir os arquivos do projeto da prova.
 
-## 12. Checklist antes de entregar
+## 10. Erros comuns: confira primeiro aqui
 
--   [ ] Existe uma classe de teste para cada classe de domínio exigida?
--   [ ] Todos os tipos concretos foram testados?
--   [ ] Os cálculos foram conferidos manualmente?
--   [ ] As exceções personalizadas foram testadas?
--   [ ] As exceções nativas previstas foram testadas?
--   [ ] O processamento altera o estado como esperado?
--   [ ] As regras que proíbem mudanças de estado foram testadas?
--   [ ] `@BeforeEach` prepara um objeto novo antes de cada teste?
--   [ ] `@AfterEach` executa depois de cada teste?
--   [ ] Todos os testes passam individualmente e em conjunto?
--   [ ] Os testes estão fora da classe `Main`?
+  ------------------------------------------------------------------------------------
+  Mensagem/situação                                O que verificar
+  ------------------------------------------------ -----------------------------------
+  `cannot find symbol`                             nome de classe, método ou variável;
+                                                   se a classe foi compilada
 
-## 13. Lembretes essenciais
+  `package org.junit.jupiter.api does not exist`   JUnit não está no classpath
 
--   **Teste não é implementação:** o teste chama o método da aplicação;
-    não repete a lógica de cálculo dentro do `assert`.
--   **Não force um teste a passar:** se o resultado divergir, investigue
-    a regra, o código e os dados usados.
--   **Adapte nomes e regras:** não copie cegamente as regras de pedidos
-    para outro tema. Preserve o padrão e substitua pelo que o enunciado
-    realmente pede.
+  `No tests found`                                 `@Test`, nome/pacote da classe e
+                                                   comando de execução
+
+  `expected ... but was ...`                       valor esperado, regra e
+                                                   implementação
+
+  `NullPointerException` inesperada                objeto ou atributo não inicializado
+
+  teste passa sozinho e falha junto                estado compartilhado; prepare
+                                                   objeto em `@BeforeEach`
+
+  `assertEquals` falha com decimais                use delta e confira arredondamento
+
+  exceção esperada não acontece                    confira se chamou o método correto
+                                                   e se a regra está implementada
+
+  exceção diferente                                confira o tipo realmente lançado
+  ------------------------------------------------------------------------------------
+
+Um teste que falha pode indicar erro no programa, e não no teste.
+Compare com o enunciado antes de mudar a expectativa.
+
+## 11. Checklist de entrega
+
+-   [ ] Criei as classes de teste solicitadas.
+-   [ ] Testei cada regra de negócio importante.
+-   [ ] Testei os cálculos com valores esperados corretos.
+-   [ ] Testei limites quando há condições (`>`, `>=`, `<`, `<=`).
+-   [ ] Testei entradas inválidas e exceções.
+-   [ ] Testei mudanças de estado e transições proibidas.
+-   [ ] Usei `@BeforeEach` quando precisei reinicializar objetos.
+-   [ ] Executei todos os testes e conferi o resultado.
+
+------------------------------------------------------------------------
+
+## Regra de ouro
+
+**Enunciado → regra → método → dados de teste → chamada → assert.**
+
+1.  Encontre uma regra no enunciado.
+2.  Localize no código o método responsável.
+3.  Prepare dados que representem o cenário.
+4.  Chame o método.
+5.  Verifique o retorno, o estado ou a exceção.
+
+Não coloque a lógica de negócio dentro do teste ou do `main`: o teste
+verifica o comportamento das classes do sistema.
